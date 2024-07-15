@@ -7,8 +7,8 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class UserModel(BaseModel):
-    user_name: str = Field(...)
-    hashed_password: str = Field(...)
+    username: str = Field(...)
+    password: str = Field(...)
     model_config = ConfigDict(populate_by_name=True,
                               arbitrary_types_allowed=True,
                               json_schema_extra={
@@ -21,3 +21,16 @@ class UserModel(BaseModel):
                               )
 class UserCollections(BaseModel):
     users: List[UserModel]
+
+class UserSchema(BaseModel):
+    model_config = ConfigDict(strict=True)
+
+    username:str
+    password:bytes
+    email: EmailStr | None = None
+    active: bool = True
+
+
+class TokenInfo(BaseModel):
+    access_token: str
+    token_type: str

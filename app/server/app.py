@@ -5,8 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette import status
 from starlette.responses import JSONResponse
 
-
-from app.server.user_router import router
+from app.server.routers.user_router import router
 
 app = FastAPI(title='Shop')
 app.include_router(router)
