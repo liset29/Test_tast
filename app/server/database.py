@@ -2,7 +2,7 @@ import asyncio
 
 from sqlalchemy import create_engine
 
-from models import Base
+from app.server.models import Base
 
 HOST = 'localhost'
 USER = 'postgres'
@@ -26,4 +26,3 @@ async def init_models():
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-asyncio.run(init_models())

@@ -1,4 +1,4 @@
-from sqlalchemy import Column
+from sqlalchemy import Column, Boolean
 from sqlalchemy import String
 from sqlalchemy import Integer
 from sqlalchemy.orm import DeclarativeBase
@@ -7,9 +7,10 @@ from sqlalchemy.orm import DeclarativeBase
 class Base(DeclarativeBase):
     pass
 
-class City(Base):
-    __tablename__ = "cities"
+class User(Base):
+    __tablename__ = "users"
 
-    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    name = Column(String, unique=True)
-    population = Column(Integer)
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    is_active = Column(Boolean, default=True)
