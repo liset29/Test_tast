@@ -2,7 +2,11 @@ from datetime import timedelta, datetime
 
 import bcrypt
 import jwt
+from fastapi import Depends
+
 import config as con
+
+from app.server.schemas import UserSchema
 
 
 async def encode_jwt(payload: dict,
@@ -51,3 +55,6 @@ async def validate_password(password: str, hashed_password: bytes) -> bool:
 
 async def check_root(user_id):
     pass
+
+# def get_current_user(user: UserSchema = Depends(validate_auth_user)) -> UserSchema:
+#     return user

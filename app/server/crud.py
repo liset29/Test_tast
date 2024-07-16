@@ -100,7 +100,13 @@ async def registration(user: UserModel, session) -> User:
         new_user = User(username=user.username, email=user.email, password=password)
         session.add(new_user)
         await session.commit()
-        new_role = Role(key=new_user.id, role='admin')
+        # new_role = Role(key=new_user.id, role='admin')
+        # session.add(new_role)
+        # await session.commit()
+        return new_user
+
+async def add_user_role(token,user_id,session):
+    async with session() as session:
+        new_role = Role(key=token, role='admin',user_id = user_id)
         session.add(new_role)
         await session.commit()
-        return new_user
