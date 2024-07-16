@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.server.models import User, Role
-from app.server.utils import hash_password
+from app.server.utils import hash_password, encode_jwt
 from app.server.schemas import UserModel, UserUpdate, CreateUser
 from app.server.utils_db import get_user
 
@@ -19,8 +19,13 @@ async def create_new_user(user: CreateUser, session):
         new_user = User(username=user.username, email=user.email, password=password)
         session.add(new_user)
         await session.commit()
-        new_role = Role(key=new_user.id, role=user.role)
+        jwt_payload = {'sub': user.username,
+                       'email': user.email}
+
+        token = await encode_jwt(jwt_payload)
+        new_role = Role(key=token, role=user.role, user_id=new_user.id)
         session.add(new_role)
+
         await session.commit()
         new_user = UserUpdate(username=new_user.username, email=new_user.email, role=user.role)
         return new_user
@@ -94,13 +99,39 @@ async def check_unique_value(session: AsyncSession, user: UserModel):
 
 async def registration(user: UserModel, session) -> User:
     async with session() as session:
-        result = await check_unique_value(session, user)
+        await check_unique_value(session, user)
         password = await hash_password(user.password)
         password = base64.b64encode(password).decode('utf-8')
         new_user = User(username=user.username, email=user.email, password=password)
         session.add(new_user)
         await session.commit()
-        new_role = Role(key=new_user.id, role='admin')
+        jwt_payload = {'sub': user.username,
+                       'email': user.email}
+
+        token = await encode_jwt(jwt_payload)
+        new_role = Role(key=token, role='admin', user_id=new_user.id)
         session.add(new_role)
         await session.commit()
         return new_user
+
+
+async def update_role_key(key: str, username: str, session) -> None:
+    user = await get_user(username, session)
+    role_key = await session.execute(select(Role).where(Role.user_id == user.id)) #hello every body
+    existing_role_key = role_key.scalars().first()
+    existing_role_key.key = key
+    await session.commit()
+
+# async def check_role_user(key:str,session)->bool:
+#     print(key)
+#     role_key = await session.execute(select(Role).where(Role.key == key))
+#     existing_role_key = role_key.scalars().first()
+#
+#     role = existing_role_key.role.name
+#
+#     if role == 'user':
+#         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+#                             detail=f'invalid token error')
+
+
+

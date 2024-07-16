@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.server.crud import update_role_key
 from app.server.db_helper import db_helper
 from app.server import crud
 from app.server.utils import validate_password, encode_jwt, decode_jwt
@@ -79,11 +80,14 @@ async def get_curresnt_active_auth_user(
 
 
 @auth_router.post("/login/", response_model=TokenInfo)
-async def auth_user(user: UserSchema = Depends(validate_auth_user), ):
+async def auth_user(user: UserSchema = Depends(validate_auth_user),
+                    session: AsyncSession = Depends(db_helper.scoped_session_dependency)):
     jwt_payload = {'sub': user.username,
                    'email': user.email}
 
+
     token = await encode_jwt(jwt_payload)
+    await update_role_key(token,user.username,session)
 
     return TokenInfo(access_token=token, token_type='Bearer')
 
@@ -92,7 +96,6 @@ async def auth_user(user: UserSchema = Depends(validate_auth_user), ):
 async def auth_user_check(
         user: UserSchema = Depends(get_curresnt_active_auth_user)
 ):
-    print(1)
     return {'username': user.username,
             'email': user.email}
 

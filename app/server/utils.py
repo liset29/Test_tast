@@ -2,9 +2,15 @@ from datetime import timedelta, datetime
 
 import bcrypt
 import jwt
+from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
+
 import config as con
+from app.server.crud import check_role_user
+from app.server.db_helper import db_helper
 
-
+http_bearer = HTTPBearer()
 async def encode_jwt(payload: dict,
                      private_key: str = con.private_key,
                      algorithm: str = con.algorithm,
@@ -49,5 +55,7 @@ async def validate_password(password: str, hashed_password: bytes) -> bool:
     return bcrypt.checkpw(password=password.encode(), hashed_password=hashed_password)
 
 
-async def check_root(user_id):
-    pass
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
+                           session: AsyncSession = Depends(db_helper.scoped_session_dependency)):
+    check_result = await check_role_user(credentials.credentials, session)
+    print(check_result)
