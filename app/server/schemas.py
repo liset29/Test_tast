@@ -1,4 +1,4 @@
-from typing import Optional, Annotated, List
+from typing import Optional, Annotated, List, Literal
 from bson import ObjectId
 from pydantic.functional_validators import BeforeValidator
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
@@ -14,6 +14,17 @@ class UserModel(BaseModel):
                               arbitrary_types_allowed=True,
 
                               )
+
+
+class CreateUser(UserModel):
+    role: Literal['admin', 'user'] = Field()
+
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    active: Optional[bool] = None
+    role: Literal['admin', 'user'] = Field()
 
 
 class UserCollections(BaseModel):

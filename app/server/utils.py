@@ -3,8 +3,6 @@ from datetime import timedelta, datetime
 import bcrypt
 import jwt
 import config as con
-from app.server.schemas import UserModel
-
 
 
 async def encode_jwt(payload: dict,
@@ -27,7 +25,6 @@ async def encode_jwt(payload: dict,
         private_key,
         algorithm=algorithm,
     )
-
     return encoded
 
 
@@ -48,11 +45,9 @@ async def hash_password(password: str) -> bytes:
     return bcrypt.hashpw(pwd_bytes, salt)
 
 
-async def validate_password(password: str,
-                            hashed_password: bytes) -> bool:
-    print(password)
-    print(hashed_password)
+async def validate_password(password: str, hashed_password: bytes) -> bool:
     return bcrypt.checkpw(password=password.encode(), hashed_password=hashed_password)
 
 
-
+async def check_root(user_id):
+    pass
