@@ -40,7 +40,7 @@ app.include_router(router)
 #     if db_user:
 #         raise HTTPException(status_code=400, detail="Username already registered")
 #     return await crud.create_user(db=db, user=user)
-#
+
 # @router.get("/", response_model=list[User])
 # async def read_users(skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_session)):
 #     users = await crud.get_users(db)

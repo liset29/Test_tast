@@ -3,13 +3,15 @@ from datetime import timedelta, datetime
 import bcrypt
 import jwt
 import config as con
+from app.server.schemas import UserModel
 
 
-def encode_jwt(payload: dict,
-               private_key: str = con.private_key,
-               algorithm: str = con.algorithm,
-               expire_minutes: int = con.access_token_expire,
-               expire_timedelta: timedelta | None = None):
+
+async def encode_jwt(payload: dict,
+                     private_key: str = con.private_key,
+                     algorithm: str = con.algorithm,
+                     expire_minutes: int = con.access_token_expire,
+                     expire_timedelta: timedelta | None = None):
     to_encode = payload.copy()
     now = datetime.utcnow()
 
@@ -29,9 +31,9 @@ def encode_jwt(payload: dict,
     return encoded
 
 
-def decode_jwt(token: str,
-               public_key: str = con.public_key,
-               algorithm=con.algorithm):
+async def decode_jwt(token: str,
+                     public_key: str = con.public_key,
+                     algorithm=con.algorithm):
     decoded = jwt.decode(
         token,
         public_key,
@@ -40,16 +42,17 @@ def decode_jwt(token: str,
     return decoded
 
 
-def hash_password(
-        password: str,
-) -> bytes:
+async def hash_password(password: str) -> bytes:
     salt = bcrypt.gensalt()
     pwd_bytes: bytes = password.encode()
     return bcrypt.hashpw(pwd_bytes, salt)
 
 
-def validate_password(password: str,
-                      hashed_password: bytes) -> bool:
+async def validate_password(password: str,
+                            hashed_password: bytes) -> bool:
     print(password)
     print(hashed_password)
     return bcrypt.checkpw(password=password.encode(), hashed_password=hashed_password)
+
+
+
