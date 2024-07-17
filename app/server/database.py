@@ -8,7 +8,7 @@ DATABASE_URL = f'postgresql+asyncpg://{con.USER}:{con.PASSWORD}@{con.HOST}:5432/
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 
-async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=True)
 
 
 async def init_models():
