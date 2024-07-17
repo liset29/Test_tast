@@ -11,7 +11,7 @@ from app.server.schemas import UserUpdate, Registration, CreateUser, Registered
 from app.server.utils_db import get_user
 
 
-async def create_new_user(user: CreateUser, session):
+async def create_new_user(user: CreateUser, session):                                        #создаёт нового пользователя
     async with session() as session:
         await check_unique_value(session, user)
         password = await hash_password(user.password)
@@ -31,7 +31,7 @@ async def create_new_user(user: CreateUser, session):
         return new_user
 
 
-async def get_all_users(session) -> List[dict]:
+async def get_all_users(session) -> List[dict]:                                                 #достаёт список всех пользователей из базы данных и возвращает список пользователйе
     async with session() as async_session:
         stmt = select(User.username, User.email, User.id).where(User.active == True)
         result = await async_session.execute(stmt)
@@ -40,16 +40,13 @@ async def get_all_users(session) -> List[dict]:
         return [{"user_id": user_id, "username": username, "email": email} for username, email, user_id in users]
 
 
-async def update_user_information(user_id: int, user_update: UserUpdate, session: AsyncSession,
+async def update_user_information(user_id: int, user_update: UserUpdate, session: AsyncSession,  # обновляет переданную информацию о пользователе
                                   current_user) -> UserUpdate:
 
     if current_user.role.name == 'user' and (
             current_user.user_id != user_id or current_user.role.name == 'user' and user_update.role == 'admin'):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail='Access is denied')
-    # if current_user.role == 'user' and user_update.role == 'admin':
-    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-    #                         detail='Access is denied')
     await check_unique_value(session, user_update)
     user = await get_user(user_id, session)
     if not user:
@@ -77,7 +74,7 @@ async def update_user_information(user_id: int, user_update: UserUpdate, session
     )
 
 
-async def delete_some_user(user_id: int, session: AsyncSession) -> dict:
+async def delete_some_user(user_id: int, session: AsyncSession) -> dict:                 # удаляет пользователя по user_id
     try:
         user = await get_user(user_id, session)
         if not user:
@@ -90,7 +87,7 @@ async def delete_some_user(user_id: int, session: AsyncSession) -> dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {user_id} not found")
 
 
-async def check_unique_value(session: AsyncSession, user: CreateUser | UserUpdate):
+async def check_unique_value(session: AsyncSession, user: CreateUser | UserUpdate):                  # при создании или обновлении пользователя проверяет уникальность username и email
     stmt_username = select(User).where(User.username == user.username)
     result_username = await session.execute(stmt_username)
     existing_user_username = result_username.scalar_one_or_none()
@@ -126,20 +123,10 @@ async def registration(user: Registration, session) -> Registered:
         return new_user
 
 
-async def update_role_key(key: str, username: str, session) -> None:
+async def update_role_key(key: str, username: str, session) -> None:                                # обновляет ключ к роли  у пользователя при получении нового ключа
     user = await get_user(username, session)
     role_key = await session.execute(select(Role).where(Role.user_id == user.id))  # hello every body
     existing_role_key = role_key.scalars().first()
     existing_role_key.key = key
     await session.commit()
 
-# async def check_role_user(key:str,session)->bool:
-#     print(key)
-#     role_key = await session.execute(select(Role).where(Role.key == key))
-#     existing_role_key = role_key.scalars().first()
-#
-#     role = existing_role_key.role.name
-#
-#     if role == 'user':
-#         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-#                             detail=f'invalid token error')

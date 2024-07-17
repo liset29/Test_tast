@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, Body, HTTPException
-from fastapi.security import OAuth2PasswordBearer, HTTPAuthorizationCredentials, HTTPBearer
+
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
@@ -68,7 +68,5 @@ async def create_user(user: CreateUser = Body(),
     new_user = await create_new_user(user, session)
     return new_user
 
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 

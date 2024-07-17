@@ -1,18 +1,10 @@
-version: '3.8'
-
+version: "3.9"
 services:
   postgres:
     image: postgres:latest
-    container_name: postgres_container
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: user
-      POSTGRES_DB: test_db
+      POSTGRES_DB: "test_db"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "user"
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
-    driver: local
