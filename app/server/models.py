@@ -2,7 +2,7 @@ import enum
 
 from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Boolean
-from sqlalchemy.dialects.postgresql import ENUM
+
 
 
 class Base(DeclarativeBase):

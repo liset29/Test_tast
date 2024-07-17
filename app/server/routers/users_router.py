@@ -23,7 +23,6 @@ users_router = APIRouter(prefix="/users", tags=['USERS'])
 async def list_users(session: AsyncSession = Depends(db_helper.scoped_session_dependency),
                      current_user: str = Depends(get_current_user)):
     users = await get_all_users(session)
-    print(users)
     return users
 
 

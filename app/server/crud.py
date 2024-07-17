@@ -36,7 +36,6 @@ async def get_all_users(session) -> List[dict]:                                 
         stmt = select(User.username, User.email, User.id).where(User.active == True)
         result = await async_session.execute(stmt)
         users = result.fetchall()
-        print(users)
         return [{"user_id": user_id, "username": username, "email": email} for username, email, user_id in users]
 
 
@@ -119,7 +118,6 @@ async def registration(user: Registration, session) -> Registered:
         session.add(new_role)
         await session.commit()
         new_user = Registered(id=new_user.id,username = new_user.username,email = new_user.email, active = new_user.active, role = new_role.role )
-        print(new_user)
         return new_user
 
 
