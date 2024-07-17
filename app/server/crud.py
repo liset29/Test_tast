@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.server.models import User, Role
 from app.server.utils import hash_password, encode_jwt
-from app.server.schemas import UserModel, UserUpdate, CreateUser
+from app.server.schemas import UserUpdate, Registration, CreateUser, Registered
 from app.server.utils_db import get_user
 
 
@@ -33,13 +33,24 @@ async def create_new_user(user: CreateUser, session):
 
 async def get_all_users(session) -> List[dict]:
     async with session() as async_session:
-        stmt = select(User.username, User.email).where(User.active == True)
+        stmt = select(User.username, User.email, User.id).where(User.active == True)
         result = await async_session.execute(stmt)
         users = result.fetchall()
-        return [{"username": username, "email": email} for username, email in users]
+        print(users)
+        return [{"user_id": user_id, "username": username, "email": email} for username, email, user_id in users]
 
 
-async def update_user_information(user_id: int, user_update: UserUpdate, session: AsyncSession):
+async def update_user_information(user_id: int, user_update: UserUpdate, session: AsyncSession,
+                                  current_user) -> UserUpdate:
+
+    if current_user.role.name == 'user' and (
+            current_user.user_id != user_id or current_user.role.name == 'user' and user_update.role == 'admin'):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail='Access is denied')
+    # if current_user.role == 'user' and user_update.role == 'admin':
+    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+    #                         detail='Access is denied')
+    await check_unique_value(session, user_update)
     user = await get_user(user_id, session)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -52,13 +63,11 @@ async def update_user_information(user_id: int, user_update: UserUpdate, session
 
     user = await get_user(user_id, session)
     if user_update.role:
-        role = await session.execute(select(Role).where(Role.key == user_id))
+        role = await session.execute(select(Role).where(Role.user_id == user_id))
         existing_role = role.scalars().first()
         if existing_role:
             existing_role.role = user_update.role
-        else:
-            new_role = Role(key=user_id, role=user_update.role)
-            session.add(new_role)
+
     await session.commit()
     return UserUpdate(
         username=user.username,
@@ -81,7 +90,7 @@ async def delete_some_user(user_id: int, session: AsyncSession) -> dict:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {user_id} not found")
 
 
-async def check_unique_value(session: AsyncSession, user: UserModel):
+async def check_unique_value(session: AsyncSession, user: CreateUser | UserUpdate):
     stmt_username = select(User).where(User.username == user.username)
     result_username = await session.execute(stmt_username)
     existing_user_username = result_username.scalar_one_or_none()
@@ -97,7 +106,7 @@ async def check_unique_value(session: AsyncSession, user: UserModel):
     return True
 
 
-async def registration(user: UserModel, session) -> User:
+async def registration(user: Registration, session) -> Registered:
     async with session() as session:
         await check_unique_value(session, user)
         password = await hash_password(user.password)
@@ -112,12 +121,14 @@ async def registration(user: UserModel, session) -> User:
         new_role = Role(key=token, role='admin', user_id=new_user.id)
         session.add(new_role)
         await session.commit()
+        new_user = Registered(id=new_user.id,username = new_user.username,email = new_user.email, active = new_user.active, role = new_role.role )
+        print(new_user)
         return new_user
 
 
 async def update_role_key(key: str, username: str, session) -> None:
     user = await get_user(username, session)
-    role_key = await session.execute(select(Role).where(Role.user_id == user.id)) #hello every body
+    role_key = await session.execute(select(Role).where(Role.user_id == user.id))  # hello every body
     existing_role_key = role_key.scalars().first()
     existing_role_key.key = key
     await session.commit()
@@ -132,6 +143,3 @@ async def update_role_key(key: str, username: str, session) -> None:
 #     if role == 'user':
 #         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
 #                             detail=f'invalid token error')
-
-
-

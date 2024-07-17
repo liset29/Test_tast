@@ -6,6 +6,10 @@ PASSWORD = 'liset29'
 DATABASE = 'test_task'
 PORT = 5432
 DATABASE_URL = f'postgresql+asyncpg://{USER}:{PASSWORD}@{HOST}:5432/{DATABASE}'
+# DATABASE_URL = 'postgresql+asyncpg://user:user@postgres:5432/test_db'
+
+
+
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine

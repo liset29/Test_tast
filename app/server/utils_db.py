@@ -6,7 +6,7 @@ from starlette import status
 from app.server.models import User, Role
 
 
-async def get_user(value: str | int, session: AsyncSession):
+async def get_user(value: str | int, session: AsyncSession) -> User:
     if type(value) == str:
         stmt_username = select(User).where(User.username == value)
     else:
@@ -16,13 +16,11 @@ async def get_user(value: str | int, session: AsyncSession):
     return user
 
 
-async def check_role_user(key:str,session)->bool:
-    print(key)
+async def check_role_user(key: str, session):
     role_key = await session.execute(select(Role).where(Role.key == key))
     existing_role_key = role_key.scalars().first()
-
-    role = existing_role_key.role.name
-
-    if role == 'user':
+    if not existing_role_key:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f'invalid token error')
+                            detail='Access is denied')
+
+    return existing_role_key

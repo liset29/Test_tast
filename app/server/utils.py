@@ -7,8 +7,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import config as con
-from app.server.crud import check_role_user
+
 from app.server.db_helper import db_helper
+from app.server.utils_db import check_role_user
 
 http_bearer = HTTPBearer()
 async def encode_jwt(payload: dict,
@@ -58,4 +59,4 @@ async def validate_password(password: str, hashed_password: bytes) -> bool:
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
                            session: AsyncSession = Depends(db_helper.scoped_session_dependency)):
     check_result = await check_role_user(credentials.credentials, session)
-    print(check_result)
+    return check_result

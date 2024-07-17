@@ -1,5 +1,4 @@
 from typing import Optional, Annotated, List, Literal
-from bson import ObjectId
 from pydantic.functional_validators import BeforeValidator
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
@@ -7,33 +6,42 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class UserModel(BaseModel):
-    username: str = Field(...)
-    password: str
+    username: str | None = Field(...)
     email: EmailStr | None = None
-    model_config = ConfigDict(populate_by_name=True,
-                              arbitrary_types_allowed=True,
 
-                              )
-
-
-class CreateUser(UserModel):
+class Registered(UserModel):
+    id : int
+    active : bool
     role: Literal['admin', 'user'] = Field()
 
 
-class UserUpdate(BaseModel):
-    username: Optional[str] = None
-    email: Optional[str] = None
+
+class Registration(UserModel):
+    password: str
+
+
+class UserUpdate(UserModel):
+    username: Optional[str] = Field(None)
     active: Optional[bool] = None
     role: Literal['admin', 'user'] = Field()
 
 
+class CreateUser(UserModel):
+    password: str
+    role: Literal['admin', 'user'] = Field()
+
+
 class UserCollections(BaseModel):
+    id: int
     users: List[UserModel]
+
+
+
 
 
 class UserSchema(UserModel):
     model_config = ConfigDict(strict=True)
-
+    password: str
     active: bool = True
 
 
